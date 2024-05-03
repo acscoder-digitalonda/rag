@@ -1,11 +1,23 @@
  
 from openai import OpenAI
- 
 import streamlit as st
-from gdocs import gdocs
- 
+from gdocs_local import gdocs
+from streamlit_modal import Modal
+from pinecone import Pinecone
+import cohere
+  
+# init client
+cohere_client = cohere.Client(st.secrets("COHERE_API_KEY"))
+def cohere_rerank(query: str,docs, top_n=3):
+    rerank_docs = cohere_client.rerank(
+    query=query, documents=docs, top_n=top_n,return_documents=True, model="rerank-english-v2.0"
+    ) 
+    return [doc.document.text for doc in rerank_docs.results]
 
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]  
+pc = Pinecone(st.secrets('PINECONE_API_KEY'))
+data_index = pc.Index("chatdoc")
+
+OPENAI_API_KEY = st.secrets('OPENAI_API_KEY')
 model_name = "gpt-4-turbo-preview"
 def send_llm(prompt,data):
     last_prompt = st.session_state.the_last_prompt
@@ -13,17 +25,9 @@ def send_llm(prompt,data):
     
     system_prompting = "You are a helpful assistant."
     if len(data):
-        system_prompting += "Based on these "+str(len(data))+" documents provided below, please complete the task requested by the user:" 
-        c = 0
-        for title,chunk in data:
-            c += 1
-            system_prompting += "\n\n"
-            system_prompting += "Document #"+str(c)+" :"+title
-            system_prompting += "\n\n"
-            system_prompting += "\n\n".join(chunk)
-            system_prompting += "--------------------------------------------------"
-            system_prompting += "\n\n"
-  
+        system_prompting += "Based on these documents provided below, please complete the task requested by the user:" 
+        system_prompting += "\n\n".join(data)
+            
     client = OpenAI(
         api_key=OPENAI_API_KEY,
     )
@@ -40,6 +44,53 @@ def send_llm(prompt,data):
     )
     return chat_completion.choices[0].message
 
+embed_model = "text-embedding-3-large"
+
+def get_embedding(text ):
+   client = OpenAI(
+        api_key=OPENAI_API_KEY,
+    )
+   text = text.replace("\n", " ")
+   return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
+
+def add_to_index(data,nsp="default"):
+    data_index.upsert(vectors=data,namespace=nsp)
+
+def get_from_index(prompt,top_k=20,nsp="default",filter={}):
+    data = get_embedding(prompt)
+    res = data_index.query(vector=data,top_k=top_k,include_values=True,include_metadata=True,namespace=nsp,
+                            filter=filter
+                            )
+    docs = [x["metadata"]['text'] for x in res["matches"]]
+    if nsp == "list":
+        docs = { x["metadata"]['doc_id']:x["metadata"]['text'] for i, x in enumerate(res["matches"])}
+    return docs
+
+def get_filter_id(doc_ids):
+    return {"doc_id": {"$in": doc_ids}}
+
+def get_all_docs():
+    docs = get_from_index("document",1000,"list")
+    return docs
+    
+def save_doc_to_db(document_id,title):
+    metadata = {"doc_id": document_id,"text": title}
+    data = [{ "id": document_id, "values":get_embedding(title), "metadata": metadata}]
+    add_to_index(data, "list")
+
+def save_doc_to_vecdb(document_id,chunks):
+    data = []
+    lim = 100
+    for idx,chunk in enumerate(chunks):
+        metadata = {"doc_id": document_id,"text": chunk}
+        data.append({ "id": document_id+"_"+str(idx),"values":get_embedding(chunk),"metadata": metadata})
+        if len(data) >= lim:
+            add_to_index(data)
+            data = []
+    
+    if len(data) > 0 :
+        add_to_index(data)
+
 def get_gdoc(url):
     creds = gdocs.gdoc_creds()
     document_id = gdocs.extract_document_id(url)
@@ -47,27 +98,45 @@ def get_gdoc(url):
     title = gdocs.read_gdoc_title(creds,document_id)
     return document_id,title,chunks
 
+if not "all_docs" in st.session_state:
+    st.session_state.all_docs = {}
+all_docs = get_all_docs()
  
- 
+st.session_state.all_docs = all_docs
+
+new_doc_modal = Modal(
+    "Add New Document", 
+    key="new-doc-modal",
+    padding=20,    # default value
+    max_width=700  # default value
+)
+if new_doc_modal.is_open():
+    with new_doc_modal.container():
+        doc_url = st.text_input("Enter your Gooogle Docs url:")
+        submit_button = st.button("Submit")
+        if submit_button:
+            with st.spinner(text="Please patient,it may take some time to process the document."):
+                document_id,title,chunks = get_gdoc(doc_url)
+                if document_id in all_docs.keys():
+                    st.write("Document already exists.")
+                else:
+                    all_docs[document_id] = title
+                    save_doc_to_vecdb(document_id,chunks)
+                    save_doc_to_db(document_id,title)
+                    st.session_state.all_docs = all_docs 
+                    new_doc_modal.close()
+
 with st.sidebar:
-  doc_url = st.text_input("Enter your Gooogle Docs url:")
-  submit_button = st.button("Add Document")
-  st.subheader("Select Your Docs")
+  add_new_doc = st.button("Add New Document")
+  if add_new_doc:
+    new_doc_modal.open()
 
-  if not "all_docs" in st.session_state:
-        st.session_state.all_docs = {}
-  all_docs = st.session_state.all_docs
-
-  if submit_button:
-    document_id,title,chunks = get_gdoc(doc_url)
-    all_docs[document_id] = (title,chunks)
-    st.session_state.all_docs = all_docs 
+  st.subheader("Select Your Documents")
      
-    
   doc_options = st.multiselect(
-    'Select Your Docs',
+    'Select the documents to query',
     all_docs.keys(),
-    format_func = lambda x: all_docs[x][0] if x in all_docs else x,
+    format_func = lambda x: all_docs[x] if x in all_docs else x,
     )
 if not "the_last_reply" in st.session_state:
     st.session_state.the_last_reply = ""
@@ -78,11 +147,13 @@ if not "the_last_prompt" in st.session_state:
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
 #submit_llm = st.button("Send")
 if your_prompt:
-    data = []
-    for doc in doc_options:
-        data.append(all_docs[doc])
-    st.session_state.the_last_prompt = your_prompt
-    response = send_llm(your_prompt,data)
-    st.session_state.the_last_reply = response.content
-    st.write(response.content)
-     
+    filter = get_filter_id([doc for doc in doc_options])
+    data = get_from_index(your_prompt,filter=filter)
+    if len(data) > 0 :
+        data = cohere_rerank(your_prompt, data)
+        st.session_state.the_last_prompt = your_prompt
+        response = send_llm(your_prompt,data)
+        st.session_state.the_last_reply = response.content
+        st.write(response.content)
+    else:
+        st.write("Sorry, no documents selected.")
