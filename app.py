@@ -5,9 +5,11 @@ from gdocs import gdocs
 from streamlit_modal import Modal
 from pinecone import Pinecone
 import cohere
-  
-# init client
+   
+OPENAI_API_KEY = st.secrets('OPENAI_API_KEY')
+PINECONE_API_KEY = st.secrets('PINECONE_API_KEY')
 COHERE_API_KEY = st.secrets('COHERE_API_KEY')
+
 cohere_client = cohere.Client(COHERE_API_KEY)
 def cohere_rerank(query: str,docs, top_n=3):
     rerank_docs = cohere_client.rerank(
@@ -15,10 +17,9 @@ def cohere_rerank(query: str,docs, top_n=3):
     ) 
     return [doc.document.text for doc in rerank_docs.results]
 
-pc = Pinecone(st.secrets('PINECONE_API_KEY'))
+pc = Pinecone(PINECONE_API_KEY)
 data_index = pc.Index("chatdoc")
 
-OPENAI_API_KEY = st.secrets('OPENAI_API_KEY')
 model_name = "gpt-4-turbo-preview"
 def send_llm(prompt,data):
     last_prompt = st.session_state.the_last_prompt
