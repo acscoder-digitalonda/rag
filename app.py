@@ -5,7 +5,11 @@ from gdocs import gdocs
 from streamlit_modal import Modal
 from pinecone import Pinecone
 import cohere
-   
+from anthropic import Anthropic  
+
+
+
+ANTHROPIC_API_KEY = st.secrets['ANTHROPIC_API_KEY']   
 OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
 PINECONE_API_KEY = st.secrets['PINECONE_API_KEY']
 COHERE_API_KEY = st.secrets['COHERE_API_KEY']
@@ -16,6 +20,10 @@ def cohere_rerank(query: str,docs, top_n=3):
     query=query, documents=docs, top_n=top_n,return_documents=True, model="rerank-english-v2.0"
     ) 
     return [doc.document.text for doc in rerank_docs.results]
+
+client_claude = Anthropic(
+    api_key=ANTHROPIC_API_KEY
+)
 
 pc = Pinecone(PINECONE_API_KEY)
 data_index = pc.Index("chatdoc")
@@ -46,8 +54,27 @@ def send_llm(prompt,data):
     )
     return chat_completion.choices[0].message
 
-embed_model = "text-embedding-3-large"
+def send_llm_claude(prompt,data):
+    last_prompt = st.session_state.the_last_prompt
+    last_reply = st.session_state.the_last_reply
+    
+    system_prompting = "You are a helpful assistant."
+    if len(data):
+        system_prompting += "Based on these documents provided below, please complete the task requested by the user:" 
+        system_prompting += "\n\n".join(data)
+    our_sms = []
+     
+    our_sms.append( {"role": "user", "content": prompt})
 
+    message = client_claude.messages.create(
+    model="claude-3-opus-20240229",
+    max_tokens=4096,
+    system = system_prompting,
+    messages=our_sms
+    )
+    return message.content[0].text
+
+embed_model = "text-embedding-3-large"
 def get_embedding(text ):
    client = OpenAI(
         api_key=OPENAI_API_KEY,
@@ -140,6 +167,12 @@ with st.sidebar:
     all_docs.keys(),
     format_func = lambda x: all_docs[x] if x in all_docs else x,
     )
+  api_option = st.selectbox(
+    'Select the API',
+    ('OpenAI', 'Anthropic'),
+    )
+
+  
 if not "the_last_reply" in st.session_state:
     st.session_state.the_last_reply = ""
 if not "the_last_prompt" in st.session_state:
@@ -154,8 +187,20 @@ if your_prompt:
     if len(data) > 0 :
         data = cohere_rerank(your_prompt, data)
         st.session_state.the_last_prompt = your_prompt
-        response = send_llm(your_prompt,data)
-        st.session_state.the_last_reply = response.content
-        st.write(response.content)
+        if api_option == "Anthropic" :
+            response = send_llm_claude(your_prompt,data)
+            st.session_state.the_last_reply = response
+            with st.chat_message("user"):
+                st.write(your_prompt)
+            with st.chat_message("assistant"):
+                st.write(response)
+        else:    
+            response = send_llm(your_prompt,data)
+            st.session_state.the_last_reply = response.content
+            
+            with st.chat_message("user"):
+                st.write(your_prompt)
+            with st.chat_message("assistant"):
+                st.write(response.content)
     else:
         st.write("Sorry, no documents selected.")
