@@ -6,9 +6,9 @@ from streamlit_modal import Modal
 from pinecone import Pinecone
 import cohere
    
-OPENAI_API_KEY = st.secrets('OPENAI_API_KEY')
-PINECONE_API_KEY = st.secrets('PINECONE_API_KEY')
-COHERE_API_KEY = st.secrets('COHERE_API_KEY')
+OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
+PINECONE_API_KEY = st.secrets['PINECONE_API_KEY']
+COHERE_API_KEY = st.secrets['COHERE_API_KEY']
 
 cohere_client = cohere.Client(COHERE_API_KEY)
 def cohere_rerank(query: str,docs, top_n=3):
