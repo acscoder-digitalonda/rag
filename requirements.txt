@@ -1,0 +1,10 @@
+google_api_python_client==2.124.0
+google_auth_oauthlib==1.2.0
+openai==1.14.3
+protobuf==3.20.3
+python-dotenv==1.0.1
+streamlit==1.32.2
+streamlit-modal==0.1.2
+pinecone-client==4.0.0
+cohere==5.0.0
+ 
