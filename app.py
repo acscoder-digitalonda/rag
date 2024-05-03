@@ -7,7 +7,8 @@ from pinecone import Pinecone
 import cohere
   
 # init client
-cohere_client = cohere.Client(st.secrets("COHERE_API_KEY"))
+COHERE_API_KEY = st.secrets('COHERE_API_KEY')
+cohere_client = cohere.Client(COHERE_API_KEY)
 def cohere_rerank(query: str,docs, top_n=3):
     rerank_docs = cohere_client.rerank(
     query=query, documents=docs, top_n=top_n,return_documents=True, model="rerank-english-v2.0"
