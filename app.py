@@ -239,7 +239,8 @@ If you don't know the answer, just say that you don't know.'''
  
   st.subheader("Recent")
   allhistories = st.session_state.all_chat_history
-  for k,item in allhistories:
+  for k in allhistories.keys():
+      item = allhistories[k]
       info = (item[:30] + '..') if len(item) > 75 else item
       st.markdown(f"<a id='history_{k}'>{info}</a>", unsafe_allow_html=True)       
   
