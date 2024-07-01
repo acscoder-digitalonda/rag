@@ -26,11 +26,18 @@ def mongodb_client():
     client = MongoClient(uri)
     return client
 
+try:
+    client = mongodb_client()
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+    
 def save_history_to_db(data):
     pid = data["id"]
     sdt = []
     for idx,dt in enumerate(data["history"]):
-        dt["_id"] = str(pid)+"_"+str(idx)
+         
         dt["pid"] = pid
         dt["order"] = idx
         sdt.append(dt)
