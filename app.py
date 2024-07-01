@@ -253,10 +253,7 @@ If you don't know the answer, just say that you don't know.'''
   add_new_doc = st.button("Add New Document")
   if add_new_doc:
     new_doc_modal.open()
-
-  st.subheader("Chat History")  
-  select_chat_history = st.button("Select Chat History")
-  
+ 
   for doc_title in all_docs.values():
       st.text(doc_title)
          
