@@ -156,8 +156,6 @@ def get_embedding(text,embed_model="text-embedding-3-small" ):
     client = OpenAI(api_key=OPENAI_API_KEY)
     text = text.replace("\n", " ")
     return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
-
-
  
 if not "all_docs" in st.session_state:
     st.session_state.all_docs = {}
@@ -263,7 +261,7 @@ if your_prompt:
     if order == 1:
         st.session_state.all_chat_history[st.session_state.chat_history["id"]] = your_prompt   
         save_his = [{"id":st.session_state.chat_history["id"],"values":ZERO_LIST_VECTOR,"metadata":{ "doc_id":st.session_state.chat_history["id"],"text":your_prompt}}]
-        add_to_index(save_his, "chat_history_list")
+        #add_to_index(save_his, "chat_history_list")
 
     save_prompt = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":your_prompt}}
 
