@@ -190,7 +190,7 @@ if new_doc_modal.is_open():
             
         with tab2:
             vid_title = st.text_input("Youtube title:")
-            vid_url = st.text_input("Enter your Youtube url, Ex: https://www.youtube.com/watch?v=NhmK9xVCXXk")
+            vid_url = st.text_input("Enter your Youtube url, Ex: https://www.youtube.com/watch?v=xxxxxx")
             video_id = extract_youtube_id(vid_url)
             submit_video = st.button("Submit Video")
 
