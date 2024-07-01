@@ -26,13 +26,8 @@ MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
 DB_SERVICE_KEY = st.secrets['DB_SERVICE_KEY']
 DB_SERVICE_URL = st.secrets['DB_SERVICE_URL']
 
+ 
 
-
-def zerolistmaker(n):
-    listofzeros = [0] * n
-    return listofzeros
-
-ZERO_LIST_VECTOR = zerolistmaker(1536)
 
 def mongodb_client():
     uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&ssl=true&w=majority&appName={MONGODB_API_APPNAME}"
@@ -107,13 +102,14 @@ def get_from_index(vec,top_k=20,nsp="default",filter={}):
 
 def get_filter_id(doc_ids):
     return {"doc_id": {"$in": doc_ids}}
+ 
 
 def get_all_docs():
-    docs = get_from_index(ZERO_LIST_VECTOR,1000,"list")
+    docs = get_from_index(get_embedding("document"),1000,"list")
     return docs
 
 def get_all_history_list():
-    docs = get_from_index(ZERO_LIST_VECTOR,1000,"chat_history_list")
+    docs = get_from_index(get_embedding("history"),1000,"chat_history_list")
     return docs
     
 def save_doc_to_db(document_id,title):
