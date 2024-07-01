@@ -159,6 +159,7 @@ def load_history(k):
     for x in res_matches:
         new_history["history"].append( {"role":x["metadata"]["role"],"content":x["metadata"]["text"]} )
 
+    new_history["history"] = reversed(new_history["history"])
     st.session_state.chat_history = new_history
      
 
