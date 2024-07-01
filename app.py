@@ -184,8 +184,8 @@ if new_doc_modal.is_open():
             vid_title = st.text_input("Youtube title:")
             vid_url = st.text_input("Enter your Youtube url, Ex: https://www.youtube.com/watch?v=fflkFtIwQXo")
             video_id = extract_youtube_id(vid_url)
-            submit_button = st.button("Submit")
-            if submit_button:
+            submit_video = st.button("Submit")
+            if submit_video:
                 with st.spinner(text="Please patient,it may take some time to process the document."):
                     if not video_id or video_id in all_docs.keys():
                         st.write("Video already exists.")
