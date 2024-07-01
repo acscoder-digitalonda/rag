@@ -8,7 +8,7 @@ from anthropic import Anthropic
 import re
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
-from pinecone_text.sparse import BM25Encoder
+from pinecone_text.sparse import BM25
 from pinecone_text.dense import OpenAIEncoder
 from pinecone_text.hybrid import hybrid_convex_scale
 from pymongo.mongo_client import MongoClient
@@ -24,7 +24,9 @@ MONGODB_API_KEY = st.secrets['MONGODB_API_KEY']
 MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
 #uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&w=majority&appName={MONGODB_API_APPNAME}"
 
-BM25Encoder = BM25Encoder.default() 
+BM25Encoder = BM25(tokenizer=lambda x: x.split())
+BM25Encoder.load("./msmarco_bm25_params.json")
+
 OpenAIEncoder = OpenAIEncoder() 
 
 cohere_client = cohere.Client(COHERE_API_KEY)

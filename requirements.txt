@@ -8,7 +8,7 @@ streamlit-modal==0.1.2
 pinecone-client==4.0.0
 cohere==5.0.0
 anthropic==0.25.7 
-pinecone-text == 0.9.0
+pinecone-text[openai] == 0.9.0
 youtube-transcript-api == 0.6.2
 pymongo[srv] == 3.11
 tiktoken == 0.7.0
