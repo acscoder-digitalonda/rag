@@ -174,36 +174,40 @@ if new_doc_modal.is_open():
             vid_title = st.text_input("Youtube title:")
             vid_url = st.text_input("Enter your Youtube url, Ex: https://www.youtube.com/watch?v=fflkFtIwQXo")
             video_id = extract_youtube_id(vid_url)
-            submit_video = st.button("Submit")
+            submit_video = st.button("Submit Video")
+
         if submit_button:
-                with st.spinner(text="Please patient,it may take some time to process the document."):
-                    document_id,title,chunks = get_gdoc(doc_url)
-                    if document_id in all_docs.keys():
-                        st.write("Document already exists.")
-                    else:
-                        all_docs[document_id] = title
-                        save_doc_to_vecdb(document_id,chunks)
-                        save_doc_to_db(document_id,title)
-                        st.session_state.all_docs = all_docs 
-                        new_doc_modal.close()
+            with st.spinner(text="Please patient,it may take some time to process the document."):
+                document_id,title,chunks = get_gdoc(doc_url)
+                if document_id in all_docs.keys():
+                    st.write("Document already exists.")
+                else:
+                    all_docs[document_id] = title
+                    save_doc_to_vecdb(document_id,chunks)
+                    save_doc_to_db(document_id,title)
+                    st.session_state.all_docs = all_docs 
+                    doc_url = ""
+                    st.write("Document added successfully.")
+
         if submit_video:
-                with st.spinner(text="Please patient,it may take some time to process the document."):
-                    if not video_id or video_id in all_docs.keys():
-                        st.write("Video already exists.")
-                    else:            
-                        transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])  
-                        formatter = TextFormatter()
-                        formatted_transcript = formatter.format_transcript(transcript)
+            with st.spinner(text="Please patient,it may take some time to process the document."):
+                if not video_id or video_id in all_docs.keys():
+                    st.write("Video already exists.")
+                else:            
+                    transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])  
+                    formatter = TextFormatter()
+                    formatted_transcript = formatter.format_transcript(transcript)
                         
-                        save_doc_to_db(video_id,vid_title)
-                        all_docs[video_id] = vid_title
+                    save_doc_to_db(video_id,vid_title)
+                    all_docs[video_id] = vid_title
                         
-                        tiktoken_encoding = tiktoken.get_encoding("cl100k_base")
-                        chunks = split_string_with_limit(formatted_transcript, 512,tiktoken_encoding)
-                        save_doc_to_vecdb(video_id,chunks)
-                        vid_title = ""
-                        vid_url = ""
-                        st.session_state.all_docs = all_docs        
+                    tiktoken_encoding = tiktoken.get_encoding("cl100k_base")
+                    chunks = split_string_with_limit(formatted_transcript, 512,tiktoken_encoding)
+                    save_doc_to_vecdb(video_id,chunks)
+                    vid_title = ""
+                    vid_url = ""
+                    st.write("Document added successfully.")
+                    st.session_state.all_docs = all_docs        
 
 
 
