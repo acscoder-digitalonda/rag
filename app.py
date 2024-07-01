@@ -12,8 +12,7 @@ from pinecone_text.sparse import BM25Encoder
 from pinecone_text.dense import OpenAIEncoder
 from pinecone_text.hybrid import hybrid_convex_scale
 from pymongo.mongo_client import MongoClient
-
-import pafy
+ 
 import tiktoken
 from split_string import split_string_with_limit
 
