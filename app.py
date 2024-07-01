@@ -160,16 +160,7 @@ all_docs = get_all_docs()
  
 st.session_state.all_docs = all_docs
 
-chat_history_modal = Modal(
-    "Chat History",
-    key="chat_history_modal",
-    padding=20,    # default value
-    max_width=700  # default value
-)
-if chat_history_modal.is_open():
-    with chat_history_modal.container():
-        st.write("chat_history_modal")
-
+ 
 new_doc_modal = Modal(
     "Add New Document", 
     key="new-doc-modal",
@@ -178,7 +169,10 @@ new_doc_modal = Modal(
 )
 if new_doc_modal.is_open():
     with new_doc_modal.container():
-        tab1, tab2 = st.tabs(["Gooogle Docs", "Youtube"])
+        tab0,tab1, tab2 = st.tabs(["Your Documents","Gooogle Docs", "Youtube"])
+        with tab0:
+            for doc_title in all_docs.values():
+                st.text(doc_title)
         with tab1:
             doc_url = st.text_input("Enter your Gooogle Docs url:")
             submit_button = st.button("Submit")
@@ -238,18 +232,12 @@ If you don't know the answer, just say that you don't know.'''
     'Select the API',
     ('OpenAI', 'Anthropic'),
     )
-  st.subheader("Chat History")
-  get_chat_history = st.button("Get chat history")
-  if get_chat_history:
-    chat_history_modal.open()
-
-  st.subheader("Your Documents")
-  add_new_doc = st.button("Add New Document")
+ 
+  add_new_doc = st.button("Your Document")
   if add_new_doc:
     new_doc_modal.open()
  
-  for doc_title in all_docs.values():
-      st.text(doc_title)
+  st.subheader("Recent")  
 
  
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
