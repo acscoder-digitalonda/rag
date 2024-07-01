@@ -12,8 +12,8 @@ from pinecone_text.sparse import BM25Encoder
 from pinecone_text.dense import OpenAIEncoder
 from pinecone_text.hybrid import hybrid_convex_scale
 from pymongo.mongo_client import MongoClient
-from bs4 import BeautifulSoup 
-import requests 
+
+import pafy
 import tiktoken
 from split_string import split_string_with_limit
 
@@ -146,10 +146,8 @@ def extract_youtube_id(url):
         return None
 
 def scrape_YT_title(url):      
-    r = requests.get(url) 
-    s = BeautifulSoup(r.text, "html.parser") 
-    title = s.find("span", class_="watch-title").text.replace("\n", "") 
-    return title 
+    video = pafy.new(url)
+    return video.title 
 
 def get_query_embedding(text):
     dense_vector = OpenAIEncoder.encode_queries([text])
