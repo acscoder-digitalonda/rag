@@ -262,11 +262,10 @@ if your_prompt:
 
     if order == 1:
         st.session_state.all_chat_history[st.session_state.chat_history["id"]] = your_prompt   
-        save_his = {"id":st.session_state.chat_history["id"],"values":ZERO_LIST_VECTOR,"metadata":{ "doc_id":st.session_state.chat_history["id"],"text":your_prompt}}
-        add_to_index([save_his], "chat_history_list")
+        save_his = [{"id":st.session_state.chat_history["id"],"values":ZERO_LIST_VECTOR,"metadata":{ "doc_id":st.session_state.chat_history["id"],"text":your_prompt}}]
+        add_to_index(save_his, "chat_history_list")
 
-    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":your_prompt}}
-    add_to_index([save], "chat_history")
+    save_prompt = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":your_prompt}}
 
     data = get_from_index(your_prompt_vec)
     data = cohere_rerank(your_prompt, data)
@@ -279,8 +278,8 @@ if your_prompt:
     st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
 
     order = len(st.session_state.chat_history["history"])
-    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":get_embedding(response),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":response}}
-    add_to_index([save], "chat_history")
+    save_res = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":get_embedding(response),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":response}}
+    add_to_index([save_prompt,save_res], "chat_history")
      
           
 for item in st.session_state.chat_history["history"]:
