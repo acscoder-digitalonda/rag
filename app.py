@@ -91,7 +91,7 @@ def add_to_index(data,nsp="default"):
 def get_from_index(prompt,top_k=20,nsp="default",filter={},save={}):
     data = get_embedding(prompt)
 
-    if save["id"]:
+    if bool(save):
         save["values"] = data
         add_to_index(save, "chat_history")
 
