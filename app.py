@@ -91,14 +91,19 @@ def get_llm_prompt(data):
 def add_to_index(data,nsp="default"):
     data_index.upsert(vectors=data,namespace=nsp)
 
-def get_from_index(vec,top_k=20,nsp="default",filter={}):
+def get_from_index_raw(vec,top_k=20,nsp="default",filter={}):
     res = data_index.query(vector=vec,top_k=top_k,include_values=True,include_metadata=True,namespace=nsp,
                             filter=filter
                             )
-    docs = [x["metadata"]['text'] for x in res["matches"]]
+    return res["matches"]
+def get_from_index(vec,top_k=20,nsp="default",filter={}):
+    res_matches = get_from_index_raw(vec,top_k,nsp,filter)
+    docs = [x["metadata"]['text'] for x in res_matches]
     if nsp == "list" or nsp=="chat_history_list":
-        docs = { x["metadata"]['doc_id']:x["metadata"]['text'] for i, x in enumerate(res["matches"])}
+        docs = { x["metadata"]['doc_id']:x["metadata"]['text'] for i, x in enumerate(res_matches)}
+    
     return docs
+
 
 def get_filter_id(doc_ids):
     return {"doc_id": {"$in": doc_ids}}
@@ -149,7 +154,13 @@ def extract_youtube_id(url):
         return None
 
 def load_history(k):
-    return get_from_index(get_embedding("history"),1000,"chat_history",filter={"chat_id":k})
+    res_matches = get_from_index_raw(get_embedding("history"),1000,"chat_history",filter={"chat_id":k})
+    new_history = {"id": k, "history": []}
+    for x in res_matches:
+        new_history["history"].append( {"role":x["metadata"]["role"],"content":x["metadata"]["text"]} )
+
+    st.session_state.chat_history = new_history
+     
 
 def get_embedding(text,embed_model="text-embedding-3-small" ):
     client = OpenAI(api_key=OPENAI_API_KEY)
@@ -268,7 +279,7 @@ if your_prompt:
         save_his = [{"id":str(st.session_state.chat_history["id"]),"values":your_prompt_vec,"metadata":{ "doc_id":st.session_state.chat_history["id"],"text":your_prompt}}]
         add_to_index(save_his, "chat_history_list")
 
-    save_prompt = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":your_prompt}}
+    save_prompt = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"role":"role","text":your_prompt}}
 
     data = get_from_index(your_prompt_vec)
     data = cohere_rerank(your_prompt, data)
@@ -281,7 +292,7 @@ if your_prompt:
     st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
 
     order = len(st.session_state.chat_history["history"])
-    save_res = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":get_embedding(response),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":response}}
+    save_res = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":get_embedding(response),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"role":"assistant","text":response}}
     add_to_index([save_prompt,save_res], "chat_history")
      
           
