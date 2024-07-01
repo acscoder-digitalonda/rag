@@ -147,7 +147,10 @@ def extract_youtube_id(url):
         return match.group(1)
     else:
         return None
- 
+
+def load_history(k):
+    return get_from_index(get_embedding("history"),1000,"chat_history",filter={"chat_id":k})
+
 def get_embedding(text,embed_model="text-embedding-3-small" ):
     client = OpenAI(api_key=OPENAI_API_KEY)
     text = text.replace("\n", " ")
@@ -245,7 +248,8 @@ If you don't know the answer, just say that you don't know.'''
          
       bt = st.button(info,key=k)
       if bt:
-          st.write(f"{k} clicked")    
+          hist = load_history(k)
+          st.write(hist)    
   
  
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
