@@ -23,7 +23,7 @@ MONGODB_API_KEY = st.secrets['MONGODB_API_KEY']
 MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
 
 def mongodb_client():
-    uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&w=majority&appName={MONGODB_API_APPNAME}"
+    uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&ssl=true&w=majority&appName={MONGODB_API_APPNAME}"
     client = MongoClient(uri)
     return client
 
