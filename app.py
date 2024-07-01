@@ -226,7 +226,6 @@ with st.sidebar:
   
   for doc_title in all_docs.values():
       st.text(doc_title)
-      st.divider()
   
 if not "the_last_reply" in st.session_state:
     st.session_state.the_last_reply = ""
