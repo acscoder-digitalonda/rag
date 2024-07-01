@@ -145,27 +145,12 @@ def extract_youtube_id(url):
         return match.group(1)
     else:
         return None
-
  
 def get_embedding(text,embed_model="text-embedding-3-small" ):
-   client = OpenAI(
-        api_key=OPENAI_API_KEY,
-    )
-   text = text.replace("\n", " ")
-   return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
-'''
-def get_query_embedding(text):
-    dense_vector = OpenAIEncoder.encode_queries([text])
-    sparse_vector = BM25Encoder.encode_queries(text)
-    hybrid_dense, _ = hybrid_convex_scale(dense_vector[0], sparse_vector, alpha=0.8)
-    return hybrid_dense
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    text = text.replace("\n", " ")
+    return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
 
-def get_document_embedding(text):
-    dense_vector = OpenAIEncoder.encode_documents([text])
-    sparse_vector = BM25Encoder.encode_documents(text)
-    hybrid_dense, _ = hybrid_convex_scale(dense_vector[0], sparse_vector, alpha=0.8)
-    return hybrid_dense
-'''
 if not "all_docs" in st.session_state:
     st.session_state.all_docs = {}
 all_docs = get_all_docs()
