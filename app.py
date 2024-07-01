@@ -32,9 +32,7 @@ def mongodb_client():
     return client
 
 def save_history_to_db(data):
-    data_text = json.dumps(data["history"])
-    requests.post(DB_SERVICE_URL,params={"secret_id": DB_SERVICE_KEY,"action":"insert_chat_history","id":data["id"],"data":data_text})
-
+    pass
 
 cohere_client = cohere.Client(COHERE_API_KEY)
 def cohere_rerank(query: str,docs, top_n=3):
@@ -90,8 +88,13 @@ def get_llm_prompt(data):
 def add_to_index(data,nsp="default"):
     data_index.upsert(vectors=data,namespace=nsp)
 
-def get_from_index(prompt,top_k=20,nsp="default",filter={}):
+def get_from_index(prompt,top_k=20,nsp="default",filter={},save={}):
     data = get_embedding(prompt)
+
+    if save["id"]:
+        save["values"] = data
+        add_to_index(save, "chat_history")
+
     res = data_index.query(vector=data,top_k=top_k,include_values=True,include_metadata=True,namespace=nsp,
                             filter=filter
                             )
@@ -121,7 +124,7 @@ def save_doc_to_vecdb(document_id,chunks):
         if len(data) >= lim:
             add_to_index(data)
             data = []
-    
+                
     if len(data) > 0 :
         add_to_index(data)
 
@@ -149,14 +152,8 @@ def get_embedding(text,embed_model="text-embedding-3-small" ):
     return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
 
 
-
 def get_recent_history_list():
-    response = requests.post(DB_SERVICE_URL,params={"secret_id": DB_SERVICE_KEY,"action":"get_chat_history"})
-    if response !="":
-        data = json.loads(response.text) 
-    else:
-        data = []
-    return data
+    pass
 
 if not "all_docs" in st.session_state:
     st.session_state.all_docs = {}
@@ -223,8 +220,6 @@ if new_doc_modal.is_open():
 if not "chat_history" in st.session_state:
     st.session_state.chat_history = {"id":int(time.time()),"history":[]}
 
-if not "recent_history_list" in st.session_state:
-    st.session_state.recent_history_list = []
 
 with st.sidebar:
   #st.subheader("Select Your Documents")  
@@ -253,7 +248,10 @@ if your_prompt:
     #filter = get_filter_id([doc for doc in doc_options])
 
     st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
-    data = get_from_index(your_prompt)
+    order = len(st.session_state.chat_history["history"])
+    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history"}}
+
+    data = get_from_index(your_prompt,save=save)
     data = cohere_rerank(your_prompt, data)
     
     if api_option == "Anthropic" :
@@ -263,7 +261,10 @@ if your_prompt:
 
     st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
 
-    save_history_to_db(st.session_state.chat_history)  
+    order = len(st.session_state.chat_history["history"])
+    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":get_embedding(response),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history"}}
+    add_to_index(save, "chat_history")
+     
 
           
 for item in st.session_state.chat_history["history"]:
