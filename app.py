@@ -8,9 +8,7 @@ from anthropic import Anthropic
 import re
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
-#from pinecone_text.sparse import BM25Encoder
-#from pinecone_text.dense import OpenAIEncoder
-#from pinecone_text.hybrid import hybrid_convex_scale
+ 
 from pymongo.mongo_client import MongoClient
 import time
 import tiktoken
@@ -22,12 +20,17 @@ PINECONE_API_KEY = st.secrets['PINECONE_API_KEY']
 COHERE_API_KEY = st.secrets['COHERE_API_KEY']
 MONGODB_API_KEY = st.secrets['MONGODB_API_KEY']
 MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
-#uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&w=majority&appName={MONGODB_API_APPNAME}"
 
-#BM25Encoder = BM25Encoder()
-#BM25Encoder.load("./msmarco_bm25_params.json")
+def mongodb_client():
+    uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&w=majority&appName={MONGODB_API_APPNAME}"
+    client = MongoClient(uri)
+    return client
 
-#OpenAIEncoder = OpenAIEncoder() 
+def save_history_to_db(data):
+    client = mongodb_client()
+    database = client["chat_doc"]
+    collection = database["chat_history"]
+    collection.insert_one(data) 
 
 cohere_client = cohere.Client(COHERE_API_KEY)
 def cohere_rerank(query: str,docs, top_n=3):
@@ -162,7 +165,7 @@ if new_doc_modal.is_open():
             
         with tab2:
             vid_title = st.text_input("Youtube title:")
-            vid_url = st.text_input("Enter your Youtube url, Ex: https://www.youtube.com/watch?v=fflkFtIwQXo")
+            vid_url = st.text_input("Enter your Youtube url, Ex: https://www.youtube.com/watch?v=NhmK9xVCXXk")
             video_id = extract_youtube_id(vid_url)
             submit_video = st.button("Submit Video")
 
@@ -200,7 +203,7 @@ if new_doc_modal.is_open():
                     st.session_state.all_docs = all_docs        
 
 if not "chat_history" in st.session_state:
-    st.session_state.chat_history = {"id":int(time.time()),"history":[]}
+    st.session_state.chat_history = {"_id":int(time.time()),"history":[]}
 
 with st.sidebar:
   #st.subheader("Select Your Documents")  
@@ -220,6 +223,9 @@ If you don't know the answer, just say that you don't know.'''
   add_new_doc = st.button("Add New Document")
   if add_new_doc:
     new_doc_modal.open()
+
+  st.subheader("Chat History")  
+  select_chat_history = st.button("Select Chat History")
   
   for doc_title in all_docs.values():
       st.text(doc_title)
@@ -239,11 +245,12 @@ if your_prompt:
         response = send_llm(data)
 
     st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
-     
+
+    save_history_to_db(st.session_state.chat_history["history"])  
 
           
 for item in st.session_state.chat_history["history"]:
     if item["role"] == "user" or item["role"] == "assistant":    
         st.chat_message(item["role"]).write(item["content"])
     
-    #save chat_history  
+    
