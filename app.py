@@ -44,7 +44,7 @@ pc = Pinecone(PINECONE_API_KEY)
 data_index = pc.Index("chatdoc")
 
 model_name = "gpt-4-turbo-preview"
-def send_llm(prompt,data):
+def send_llm(data):
     system_prompting,messages = get_llm_prompt(data)
     client = OpenAI(
         api_key=OPENAI_API_KEY,
