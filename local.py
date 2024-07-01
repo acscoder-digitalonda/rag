@@ -20,10 +20,17 @@ uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrite
 # Create a new client and connect to the server
 client = MongoClient(uri)
 
+
 # Send a ping to confirm a successful connection
 try:
     client.admin.command('ping')
     print("Pinged your deployment. You successfully connected to MongoDB!")
+    db = client['chat_doc']
+    collection = db['history']
+    cursor = collection.find({})
+    for document in cursor:
+        print(document)
+        
 except Exception as e:
     print(e)
  

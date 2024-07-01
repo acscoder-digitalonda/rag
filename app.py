@@ -159,6 +159,21 @@ all_docs = get_all_docs()
  
 st.session_state.all_docs = all_docs
 
+chat_history_modal = Modal(
+    "Chat History",
+    key="chat_history_modal",
+    padding=20,    # default value
+    max_width=700  # default value
+)
+if chat_history_modal.is_open():
+    with chat_history_modal.container():
+        client = mongodb_client()
+        db = client['chat_doc']
+        collection = db['history']
+        cursor = collection.find({})
+        for document in cursor:
+            st.write(document.content)
+
 new_doc_modal = Modal(
     "Add New Document", 
     key="new-doc-modal",
@@ -227,7 +242,11 @@ If you don't know the answer, just say that you don't know.'''
     'Select the API',
     ('OpenAI', 'Anthropic'),
     )
-  
+  st.subheader("Chat History")
+  get_chat_history = st.button("Get chat history")
+  if get_chat_history:
+    chat_history_modal.open()
+
   st.subheader("Your Documents")
   add_new_doc = st.button("Add New Document")
   if add_new_doc:
