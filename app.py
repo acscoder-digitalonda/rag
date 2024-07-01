@@ -225,10 +225,12 @@ If you don't know the answer, just say that you don't know.'''
       st.text(doc_title)
          
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
-st_chat_message_user = st.chat_message("user")
-st_chat_message_assistant = st.chat_message("assistant")
+
 if your_prompt:
     #filter = get_filter_id([doc for doc in doc_options])
+    st_chat_message_user = st.chat_message("user")
+    st_chat_message_assistant = st.chat_message("assistant")
+    
     st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
     data = get_from_index(your_prompt)
     data = cohere_rerank(your_prompt, data)
