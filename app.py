@@ -24,7 +24,7 @@ MONGODB_API_KEY = st.secrets['MONGODB_API_KEY']
 MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
 #uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&w=majority&appName={MONGODB_API_APPNAME}"
 
-BM25Encoder = BM25Encoder(tokenizer=lambda x: x.split())
+BM25Encoder = BM25Encoder()
 BM25Encoder.load("./msmarco_bm25_params.json")
 
 OpenAIEncoder = OpenAIEncoder() 
