@@ -275,9 +275,10 @@ if your_prompt:
     your_prompt_vec = get_embedding(your_prompt)
     
     if order == 1:
-        st.session_state.all_chat_history[st.session_state.chat_history["id"]] = your_prompt   
-        save_his = [{"id":str(st.session_state.chat_history["id"]),"values":your_prompt_vec,"metadata":{ "doc_id":st.session_state.chat_history["id"],"text":your_prompt}}]
-        add_to_index(save_his, "chat_history_list")
+        if st.session_state.chat_history["id"] not in st.session_state.all_chat_history.keys():
+            save_his = [{"id":str(st.session_state.chat_history["id"]),"values":your_prompt_vec,"metadata":{ "doc_id":st.session_state.chat_history["id"],"text":your_prompt}}]
+            add_to_index(save_his, "chat_history_list")
+        st.session_state.all_chat_history[st.session_state.chat_history["id"]] = your_prompt 
 
     save_prompt = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"role":"role","text":your_prompt}}
 
