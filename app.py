@@ -259,9 +259,8 @@ If you don't know the answer, just say that you don't know.'''
          
       bt = st.button(info,key=k)
       if bt:
-          hist = load_history(k)
-          st.write(hist)    
-  
+        load_history(k)
+          
  
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
 
@@ -280,7 +279,7 @@ if your_prompt:
             add_to_index(save_his, "chat_history_list")
         st.session_state.all_chat_history[st.session_state.chat_history["id"]] = your_prompt 
 
-    save_prompt = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"role":"role","text":your_prompt}}
+    save_prompt = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"role":"user","text":your_prompt}}
 
     data = get_from_index(your_prompt_vec)
     data = cohere_rerank(your_prompt, data)
