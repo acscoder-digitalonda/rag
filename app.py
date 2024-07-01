@@ -27,10 +27,19 @@ def mongodb_client():
     return client
 
 def save_history_to_db(data):
+    pid = data["_id"]
+    sdt = []
+    for idx,dt in enumerate(data["history"]):\
+        dt["_id"] = str(pid)+"_"+str(idx)
+        dt["pid"] = pid
+        dt["order"] = idx
+        sdt.append(dt)
+
     client = mongodb_client()
     database = client["chat_doc"]
     collection = database["chat_history"]
-    collection.insert_one(data) 
+    collection.insert_many(sdt) 
+     
 
 cohere_client = cohere.Client(COHERE_API_KEY)
 def cohere_rerank(query: str,docs, top_n=3):
@@ -203,7 +212,7 @@ if new_doc_modal.is_open():
                     st.session_state.all_docs = all_docs        
 
 if not "chat_history" in st.session_state:
-    st.session_state.chat_history = {"_id":int(time.time()),"history":[]}
+    st.session_state.chat_history = {"id":int(time.time()),"history":[]}
 
 with st.sidebar:
   #st.subheader("Select Your Documents")  
