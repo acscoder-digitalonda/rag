@@ -153,7 +153,7 @@ def get_embedding(text,embed_model="text-embedding-3-small" ):
 def get_recent_history_list():
     response = requests.post(DB_SERVICE_URL,params={"secret_id": DB_SERVICE_KEY,"action":"get_chat_history"})
     if response !="":
-        data = json.loads(response) 
+        data = json.loads(response.text) 
     else:
         data = []
     return data
