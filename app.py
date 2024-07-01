@@ -233,7 +233,13 @@ if not "chat_history" in st.session_state:
 with st.sidebar:
   #st.subheader("Select Your Documents")  
   #doc_options = st.multiselect('Select the documents to query',all_docs.keys(),format_func = lambda x: all_docs[x] if x in all_docs else x,)
-   
+  try:
+    client = mongodb_client()
+    client.admin.command('ping')
+    st.write("Pinged your deployment. You successfully connected to MongoDB!")
+  except Exception as e:
+    st.write(e)
+
   system_prompt = st.text_area("System Prompt",
                                '''You are an AI Assistant that help everyone by answering questions, and improve your answers from previous answers and CONTEXT information below.
 Answer in the same language the question was asked.Just reply directly, don't say base on history or mention about chat history.  
