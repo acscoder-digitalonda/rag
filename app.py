@@ -32,8 +32,8 @@ def mongodb_client():
     return client
 
 def save_history_to_db(data):
-    data_text = json.dumps(data)
-    requests.post(DB_SERVICE_URL,params={"secret_id": DB_SERVICE_KEY,"action":"insert_chat_history","data":data_text})
+    data_text = json.dumps(data["history"])
+    requests.post(DB_SERVICE_URL,params={"secret_id": DB_SERVICE_KEY,"action":"insert_chat_history","id":data["id"],"data":data_text})
 
 
 cohere_client = cohere.Client(COHERE_API_KEY)
