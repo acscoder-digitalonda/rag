@@ -274,7 +274,7 @@ if your_prompt:
 
     st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
 
-    save_history_to_db(st.session_state.chat_history["history"])  
+    save_history_to_db(st.session_state.chat_history)  
 
           
 for item in st.session_state.chat_history["history"]:
