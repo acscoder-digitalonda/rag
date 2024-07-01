@@ -243,7 +243,7 @@ If you don't know the answer, just say that you don't know.'''
       item = allhistories[k]
       info = (item[:30] + '..') if len(item) > 75 else item
       st.markdown(f"<a id='history_{k}'>{info}</a>", unsafe_allow_html=True)   
-      if st.button(key=k):
+      if st.button(k):
           st.write(f"{k} clicked")    
   
  
