@@ -154,7 +154,9 @@ def get_recent_history_list():
     response = requests.post(DB_SERVICE_URL,params={"secret_id": DB_SERVICE_KEY,"action":"get_chat_history"})
     if response !="":
         data = json.loads(response) 
-    
+    else:
+        data = []
+    return data
 
 if not "all_docs" in st.session_state:
     st.session_state.all_docs = {}
