@@ -233,8 +233,6 @@ if your_prompt:
     data = get_from_index(your_prompt)
     data = cohere_rerank(your_prompt, data)
     
-    st_chat_message_user = st.chat_message("user")
-    
     if api_option == "Anthropic" :
         response = send_llm_claude(data) 
     else:    
