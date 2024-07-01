@@ -96,8 +96,8 @@ def get_llm_prompt(data):
 def add_to_index(data,nsp="default"):
     data_index.upsert(vectors=data,namespace=nsp)
 
-def get_from_index(data,top_k=20,nsp="default",filter={}):
-    res = data_index.query(vector=data,top_k=top_k,include_values=True,include_metadata=True,namespace=nsp,
+def get_from_index(vec,top_k=20,nsp="default",filter={}):
+    res = data_index.query(vector=vec,top_k=top_k,include_values=True,include_metadata=True,namespace=nsp,
                             filter=filter
                             )
     docs = [x["metadata"]['text'] for x in res["matches"]]
@@ -263,10 +263,10 @@ if your_prompt:
     if order == 1:
         st.session_state.all_chat_history[st.session_state.chat_history["id"]] = your_prompt   
         save_his = {"id":st.session_state.chat_history["id"],"values":ZERO_LIST_VECTOR,"metadata":{ "doc_id":st.session_state.chat_history["id"],"text":your_prompt}}
-        add_to_index(save_his, "chat_history_list")
+        add_to_index([save_his], "chat_history_list")
 
     save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":your_prompt}}
-    add_to_index(save, "chat_history")
+    add_to_index([save], "chat_history")
 
     data = get_from_index(your_prompt_vec)
     data = cohere_rerank(your_prompt, data)
@@ -280,7 +280,7 @@ if your_prompt:
 
     order = len(st.session_state.chat_history["history"])
     save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":get_embedding(response),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":response}}
-    add_to_index(save, "chat_history")
+    add_to_index([save], "chat_history")
      
           
 for item in st.session_state.chat_history["history"]:
