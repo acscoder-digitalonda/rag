@@ -159,21 +159,7 @@ if not "all_docs" in st.session_state:
 all_docs = get_all_docs()
  
 st.session_state.all_docs = all_docs
-
-chat_history_modal = Modal(
-    "Chat History",
-    key="chat_history_modal",
-    padding=20,    # default value
-    max_width=700  # default value
-)
-if chat_history_modal.is_open():
-    with chat_history_modal.container():
-        client = mongodb_client()
-        db = client['chat_doc']
-        collection = db['history']
-        cursor = collection.find({})
-        for document in cursor:
-            st.write(document.content)
+ 
 
 new_doc_modal = Modal(
     "Add New Document", 
@@ -243,11 +229,7 @@ If you don't know the answer, just say that you don't know.'''
     'Select the API',
     ('OpenAI', 'Anthropic'),
     )
-  st.subheader("Chat History")
-  get_chat_history = st.button("Get chat history")
-  if get_chat_history:
-    chat_history_modal.open()
-
+ 
   st.subheader("Your Documents")
   add_new_doc = st.button("Add New Document")
   if add_new_doc:
@@ -255,28 +237,31 @@ If you don't know the answer, just say that you don't know.'''
  
   for doc_title in all_docs.values():
       st.text(doc_title)
-         
-your_prompt = st.chat_input ("Enter your Prompt:" ) 
 
-if your_prompt:
-    #filter = get_filter_id([doc for doc in doc_options])
+col1, col2 = st.columns([4, 1])
+with col1:
+    your_prompt = st.chat_input ("Enter your Prompt:" ) 
 
-    st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
-    data = get_from_index(your_prompt)
-    data = cohere_rerank(your_prompt, data)
+    if your_prompt:
+        #filter = get_filter_id([doc for doc in doc_options])
+
+        st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
+        data = get_from_index(your_prompt)
+        data = cohere_rerank(your_prompt, data)
+        
+        if api_option == "Anthropic" :
+            response = send_llm_claude(data) 
+        else:    
+            response = send_llm(data)
+
+        st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
+
+        #save_history_to_db(st.session_state.chat_history)  
+
+            
+    for item in st.session_state.chat_history["history"]:
+        if item["role"] == "user" or item["role"] == "assistant":    
+            st.chat_message(item["role"]).write(item["content"])
     
-    if api_option == "Anthropic" :
-        response = send_llm_claude(data) 
-    else:    
-        response = send_llm(data)
-
-    st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
-
-    save_history_to_db(st.session_state.chat_history)  
-
-          
-for item in st.session_state.chat_history["history"]:
-    if item["role"] == "user" or item["role"] == "assistant":    
-        st.chat_message(item["role"]).write(item["content"])
-    
-    
+with col2:    
+    st.subheader("Recent")
