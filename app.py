@@ -242,8 +242,9 @@ If you don't know the answer, just say that you don't know.'''
   for k in allhistories.keys():
       item = allhistories[k]
       info = (item[:30] + '..') if len(item) > 75 else item
-      st.write(f"<a id='history_{k}'>{info}</a>", unsafe_allow_html=True)   
-      if st.button(k):
+         
+      bt = st.button(info,key=k)
+      if bt:
           st.write(f"{k} clicked")    
   
  
