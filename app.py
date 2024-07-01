@@ -224,7 +224,7 @@ if not "chat_history" in st.session_state:
     st.session_state.chat_history = {"id":int(time.time()),"history":[]}
 
 if not "recent_history_list" in st.session_state:
-    st.session_state.recent_history_list = get_recent_history_list()
+    st.session_state.recent_history_list = []
 
 with st.sidebar:
   #st.subheader("Select Your Documents")  
