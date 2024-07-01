@@ -233,7 +233,12 @@ if not "chat_history" in st.session_state:
 with st.sidebar:
   #st.subheader("Select Your Documents")  
   #doc_options = st.multiselect('Select the documents to query',all_docs.keys(),format_func = lambda x: all_docs[x] if x in all_docs else x,)
-  
+  client = mongodb_client()
+  db = client['chat_doc']
+  collection = db['history']
+  cursor = collection.find({})
+  for document in cursor:
+    st.write(document.content)
 
   system_prompt = st.text_area("System Prompt",
                                '''You are an AI Assistant that help everyone by answering questions, and improve your answers from previous answers and CONTEXT information below.
