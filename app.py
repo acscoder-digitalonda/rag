@@ -13,7 +13,8 @@ from pymongo.mongo_client import MongoClient
 import time
 import tiktoken
 from split_string import split_string_with_limit
- 
+import requests
+import json 
 
 ANTHROPIC_API_KEY = st.secrets['ANTHROPIC_API_KEY']   
 OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
@@ -22,25 +23,18 @@ COHERE_API_KEY = st.secrets['COHERE_API_KEY']
 MONGODB_API_KEY = st.secrets['MONGODB_API_KEY']
 MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
 
+DB_SERVICE_KEY = st.secrets['DB_SERVICE_KEY']
+DB_SERVICE_URL = st.secrets['DB_SERVICE_URL']
+
 def mongodb_client():
     uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&ssl=true&w=majority&appName={MONGODB_API_APPNAME}"
     client = MongoClient(uri)
     return client
 
 def save_history_to_db(data):
-    pid = data["id"]
-    sdt = []
-    for idx,dt in enumerate(data["history"]):
-         
-        dt["pid"] = pid
-        dt["order"] = idx
-        sdt.append(dt)
+    data_text = json.dumps(data)
+    requests.post(DB_SERVICE_URL,params={"secret_id": DB_SERVICE_KEY,"action":"insert_chat_history","data":data_text})
 
-    client = mongodb_client()
-    database = client["chat_doc"]
-    collection = database["chat_history"]
-    collection.insert_many(sdt) 
-     
 
 cohere_client = cohere.Client(COHERE_API_KEY)
 def cohere_rerank(query: str,docs, top_n=3):
@@ -154,6 +148,14 @@ def get_embedding(text,embed_model="text-embedding-3-small" ):
     text = text.replace("\n", " ")
     return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
 
+
+
+def get_recent_history_list():
+    response = requests.post(DB_SERVICE_URL,params={"secret_id": DB_SERVICE_KEY,"action":"get_chat_history"})
+    if response !="":
+        data = json.loads(response) 
+    
+
 if not "all_docs" in st.session_state:
     st.session_state.all_docs = {}
 all_docs = get_all_docs()
@@ -219,6 +221,9 @@ if new_doc_modal.is_open():
 if not "chat_history" in st.session_state:
     st.session_state.chat_history = {"id":int(time.time()),"history":[]}
 
+if not "recent_history_list" in st.session_state:
+    st.session_state.recent_history_list = get_recent_history_list()
+
 with st.sidebar:
   #st.subheader("Select Your Documents")  
   #doc_options = st.multiselect('Select the documents to query',all_docs.keys(),format_func = lambda x: all_docs[x] if x in all_docs else x,)
@@ -237,7 +242,7 @@ If you don't know the answer, just say that you don't know.'''
   if add_new_doc:
     new_doc_modal.open()
  
-  st.subheader("Recent")  
+  st.subheader("Recent")
 
  
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
@@ -256,7 +261,7 @@ if your_prompt:
 
     st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
 
-    #save_history_to_db(st.session_state.chat_history)  
+    save_history_to_db(st.session_state.chat_history)  
 
           
 for item in st.session_state.chat_history["history"]:
