@@ -27,7 +27,7 @@ def mongodb_client():
     return client
 
 def save_history_to_db(data):
-    pid = data["_id"]
+    pid = data["id"]
     sdt = []
     for idx,dt in enumerate(data["history"]):
         dt["_id"] = str(pid)+"_"+str(idx)
