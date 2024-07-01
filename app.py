@@ -228,15 +228,12 @@ your_prompt = st.chat_input ("Enter your Prompt:" )
 
 if your_prompt:
     #filter = get_filter_id([doc for doc in doc_options])
-    
 
     st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
     data = get_from_index(your_prompt)
     data = cohere_rerank(your_prompt, data)
     
     st_chat_message_user = st.chat_message("user")
-    st_chat_message_user.write(your_prompt)
-    st_chat_message_assistant = st.chat_message("assistant").write("Thinking...")
     
     if api_option == "Anthropic" :
         response = send_llm_claude(data) 
@@ -244,7 +241,11 @@ if your_prompt:
         response = send_llm(data)
 
     st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
-    st_chat_message_assistant.write(response)  
-          
+     
 
+          
+for item in st.session_state.chat_history["history"]:
+    if item["role"] == "user" or item["role"] == "assistant":    
+        st.chat_message(item["role"]).write(item["content"])
+    
     #save chat_history  
