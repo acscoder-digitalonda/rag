@@ -188,7 +188,7 @@ if new_doc_modal.is_open():
             if submit_button:
                 with st.spinner(text="Please patient,it may take some time to process the document."):
                     if not video_id or video_id in all_docs.keys():
-                                st.write("Video already exists.")
+                        st.write("Video already exists.")
                     else:            
                         transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])  
                         formatter = TextFormatter()
@@ -219,7 +219,7 @@ with st.sidebar:
   if add_new_doc:
     new_doc_modal.open()
   
-  for doc_title in all_docs.keys():
+  for doc_title in all_docs.values():
       st.text(doc_title)
       st.divider()
   
