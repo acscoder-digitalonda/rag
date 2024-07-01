@@ -249,7 +249,7 @@ if your_prompt:
 
     st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
     order = len(st.session_state.chat_history["history"])
-    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history"}}
+    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":your_prompt}}
 
     data = get_from_index(your_prompt,save=save)
     data = cohere_rerank(your_prompt, data)
@@ -262,10 +262,9 @@ if your_prompt:
     st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
 
     order = len(st.session_state.chat_history["history"])
-    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":get_embedding(response),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history"}}
+    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":get_embedding(response),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":response}}
     add_to_index(save, "chat_history")
      
-
           
 for item in st.session_state.chat_history["history"]:
     if item["role"] == "user" or item["role"] == "assistant":    
