@@ -145,9 +145,7 @@ def extract_youtube_id(url):
     else:
         return None
 
-def scrape_YT_title(url):      
-    video = pafy.new(url)
-    return video.title 
+ 
 
 def get_query_embedding(text):
     dense_vector = OpenAIEncoder.encode_queries([text])
@@ -191,7 +189,8 @@ if new_doc_modal.is_open():
                         st.session_state.all_docs = all_docs 
                         new_doc_modal.close()
         with tab2:
-            vid_url = st.text_input("Enter your Youtube url:")
+            vid_title = st.text_input("Youtube title:")
+            vid_url = st.text_input("Enter your Youtube url, Ex: https://www.youtube.com/watch?v=fflkFtIwQXo")
             video_id = extract_youtube_id(vid_url)
             if not video_id or video_id in all_docs.keys():
                         st.write("Video already exists.")
@@ -199,9 +198,9 @@ if new_doc_modal.is_open():
                 transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['en'])  
                 formatter = TextFormatter()
                 formatted_transcript = formatter.format_transcript(transcript)
-                title = scrape_YT_title(vid_url)
-                save_doc_to_db(video_id,title)
-                all_docs[video_id] = title
+                 
+                save_doc_to_db(video_id,vid_title)
+                all_docs[video_id] = vid_title
                 
                 tiktoken_encoding = tiktoken.get_encoding("cl100k_base")
                 chunks = split_string_with_limit(formatted_transcript, 512,tiktoken_encoding)
