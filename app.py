@@ -201,22 +201,18 @@ if new_doc_modal.is_open():
 
 
 with st.sidebar:
-  add_new_doc = st.button("Add New Document")
-  if add_new_doc:
-    new_doc_modal.open()
-
-  '''st.subheader("Select Your Documents")
-     
-  doc_options = st.multiselect(
-    'Select the documents to query',
-    all_docs.keys(),
-    format_func = lambda x: all_docs[x] if x in all_docs else x,
-    )'''
+  #st.subheader("Select Your Documents")  
+  #doc_options = st.multiselect('Select the documents to query',all_docs.keys(),format_func = lambda x: all_docs[x] if x in all_docs else x,)
   api_option = st.selectbox(
     'Select the API',
     ('OpenAI', 'Anthropic'),
     )
+  
   st.subheader("Your Documents")
+  add_new_doc = st.button("Add New Document")
+  if add_new_doc:
+    new_doc_modal.open()
+  
   for doc_title in all_docs.keys():
       st.text(doc_title)
       st.divider()
