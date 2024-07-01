@@ -8,9 +8,9 @@ from anthropic import Anthropic
 import re
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
-from pinecone_text.sparse import BM25Encoder
-from pinecone_text.dense import OpenAIEncoder
-from pinecone_text.hybrid import hybrid_convex_scale
+#from pinecone_text.sparse import BM25Encoder
+#from pinecone_text.dense import OpenAIEncoder
+#from pinecone_text.hybrid import hybrid_convex_scale
 from pymongo.mongo_client import MongoClient
  
 import tiktoken
@@ -24,10 +24,10 @@ MONGODB_API_KEY = st.secrets['MONGODB_API_KEY']
 MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
 #uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&w=majority&appName={MONGODB_API_APPNAME}"
 
-BM25Encoder = BM25Encoder()
-BM25Encoder.load("./msmarco_bm25_params.json")
+#BM25Encoder = BM25Encoder()
+#BM25Encoder.load("./msmarco_bm25_params.json")
 
-OpenAIEncoder = OpenAIEncoder() 
+#OpenAIEncoder = OpenAIEncoder() 
 
 cohere_client = cohere.Client(COHERE_API_KEY)
 def cohere_rerank(query: str,docs, top_n=3):
@@ -94,7 +94,7 @@ def add_to_index(data,nsp="default"):
     data_index.upsert(vectors=data,namespace=nsp)
 
 def get_from_index(prompt,top_k=20,nsp="default",filter={}):
-    data = get_query_embedding(prompt)
+    data = get_embedding(prompt)
     res = data_index.query(vector=data,top_k=top_k,include_values=True,include_metadata=True,namespace=nsp,
                             filter=filter
                             )
@@ -112,7 +112,7 @@ def get_all_docs():
     
 def save_doc_to_db(document_id,title):
     metadata = {"doc_id": document_id,"text": title}
-    data = [{ "id": document_id, "values":get_document_embedding(title), "metadata": metadata}]
+    data = [{ "id": document_id, "values":get_embedding(title), "metadata": metadata}]
     add_to_index(data, "list")
 
 def save_doc_to_vecdb(document_id,chunks):
@@ -120,7 +120,7 @@ def save_doc_to_vecdb(document_id,chunks):
     lim = 100
     for idx,chunk in enumerate(chunks):
         metadata = {"doc_id": document_id,"text": chunk}
-        data.append({ "id": document_id+"_"+str(idx),"values":get_document_embedding(chunk),"metadata": metadata})
+        data.append({ "id": document_id+"_"+str(idx),"values":get_embedding(chunk),"metadata": metadata})
         if len(data) >= lim:
             add_to_index(data)
             data = []
@@ -147,7 +147,13 @@ def extract_youtube_id(url):
         return None
 
  
-
+def get_embedding(text,embed_model="text-embedding-3-small" ):
+   client = OpenAI(
+        api_key=OPENAI_API_KEY,
+    )
+   text = text.replace("\n", " ")
+   return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
+'''
 def get_query_embedding(text):
     dense_vector = OpenAIEncoder.encode_queries([text])
     sparse_vector = BM25Encoder.encode_queries(text)
@@ -159,7 +165,7 @@ def get_document_embedding(text):
     sparse_vector = BM25Encoder.encode_documents(text)
     hybrid_dense, _ = hybrid_convex_scale(dense_vector[0], sparse_vector, alpha=0.8)
     return hybrid_dense
-
+'''
 if not "all_docs" in st.session_state:
     st.session_state.all_docs = {}
 all_docs = get_all_docs()
