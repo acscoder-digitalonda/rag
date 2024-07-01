@@ -157,7 +157,7 @@ def load_history(k):
     res_matches = get_from_index_raw(get_embedding("history"),1000,"chat_history",filter={"chat_id":k})
     new_history = {"id": k, "history": []}
     for x in res_matches:
-        idx = x["metadata"]["order"] - 1
+        idx = int(x["metadata"]["order"]) - 1
         new_history["history"].insert(idx,{"role":x["metadata"]["role"],"content":x["metadata"]["text"]} )
 
     
