@@ -26,6 +26,14 @@ MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
 DB_SERVICE_KEY = st.secrets['DB_SERVICE_KEY']
 DB_SERVICE_URL = st.secrets['DB_SERVICE_URL']
 
+
+
+def zerolistmaker(n):
+    listofzeros = [0] * n
+    return listofzeros
+
+ZERO_LIST_VECTOR = zerolistmaker(1536)
+
 def mongodb_client():
     uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&ssl=true&w=majority&appName={MONGODB_API_APPNAME}"
     client = MongoClient(uri)
@@ -88,18 +96,12 @@ def get_llm_prompt(data):
 def add_to_index(data,nsp="default"):
     data_index.upsert(vectors=data,namespace=nsp)
 
-def get_from_index(prompt,top_k=20,nsp="default",filter={},save={}):
-    data = get_embedding(prompt)
-
-    if bool(save):
-        save["values"] = data
-        add_to_index(save, "chat_history")
-
+def get_from_index(data,top_k=20,nsp="default",filter={}):
     res = data_index.query(vector=data,top_k=top_k,include_values=True,include_metadata=True,namespace=nsp,
                             filter=filter
                             )
     docs = [x["metadata"]['text'] for x in res["matches"]]
-    if nsp == "list":
+    if nsp == "list" or nsp=="chat_history_list":
         docs = { x["metadata"]['doc_id']:x["metadata"]['text'] for i, x in enumerate(res["matches"])}
     return docs
 
@@ -107,7 +109,11 @@ def get_filter_id(doc_ids):
     return {"doc_id": {"$in": doc_ids}}
 
 def get_all_docs():
-    docs = get_from_index("document",1000,"list")
+    docs = get_from_index(ZERO_LIST_VECTOR,1000,"list")
+    return docs
+
+def get_all_history_list():
+    docs = get_from_index(ZERO_LIST_VECTOR,1000,"chat_history_list")
     return docs
     
 def save_doc_to_db(document_id,title):
@@ -152,15 +158,12 @@ def get_embedding(text,embed_model="text-embedding-3-small" ):
     return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
 
 
-def get_recent_history_list():
-    pass
-
+ 
 if not "all_docs" in st.session_state:
     st.session_state.all_docs = {}
 all_docs = get_all_docs()
  
 st.session_state.all_docs = all_docs
-
  
 new_doc_modal = Modal(
     "Add New Document", 
@@ -219,7 +222,8 @@ if new_doc_modal.is_open():
 
 if not "chat_history" in st.session_state:
     st.session_state.chat_history = {"id":int(time.time()),"history":[]}
-
+if not "all_chat_history" in st.session_state:
+    st.session_state.all_chat_history = get_all_history_list()
 
 with st.sidebar:
   #st.subheader("Select Your Documents")  
@@ -240,7 +244,10 @@ If you don't know the answer, just say that you don't know.'''
     new_doc_modal.open()
  
   st.subheader("Recent")
-
+  allhistories = st.session_state.all_chat_history
+  for item in allhistories.values() :
+      st.text(item)     
+  
  
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
 
@@ -249,9 +256,19 @@ if your_prompt:
 
     st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
     order = len(st.session_state.chat_history["history"])
-    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":your_prompt}}
+    
 
-    data = get_from_index(your_prompt,save=save)
+    your_prompt_vec = get_embedding(your_prompt)
+
+    if order == 1:
+        st.session_state.all_chat_history[st.session_state.chat_history["id"]] = your_prompt   
+        save_his = {"id":st.session_state.chat_history["id"],"values":ZERO_LIST_VECTOR,"metadata":{ "doc_id":st.session_state.chat_history["id"],"text":your_prompt}}
+        add_to_index(save_his, "chat_history_list")
+
+    save = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"type":"history","text":your_prompt}}
+    add_to_index(save, "chat_history")
+
+    data = get_from_index(your_prompt_vec)
     data = cohere_rerank(your_prompt, data)
     
     if api_option == "Anthropic" :
