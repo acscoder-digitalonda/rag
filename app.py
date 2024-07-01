@@ -49,15 +49,14 @@ def send_llm(data):
     client = OpenAI(
         api_key=OPENAI_API_KEY,
     )
-    our_sms = []
-    our_sms.append({"role": "system", "content": system_prompting })
+    our_sms = [{"role": "system", "content": system_prompting }]
     our_sms.extend(messages)
      
     chat_completion = client.chat.completions.create(
         messages=our_sms,
         model=model_name,
     )
-    return chat_completion.choices[0].message
+    return chat_completion.choices[0].message.content
 
 def send_llm_claude(data):
     system_prompting,our_sms = get_llm_prompt(data)
@@ -226,23 +225,23 @@ If you don't know the answer, just say that you don't know.'''
       st.text(doc_title)
          
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
+st_chat_message_user = st.chat_message("user")
+st_chat_message_assistant = st.chat_message("assistant")
 if your_prompt:
     #filter = get_filter_id([doc for doc in doc_options])
     st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
     data = get_from_index(your_prompt)
     data = cohere_rerank(your_prompt, data)
     
-    with st.chat_message("user"):
-        st.write(your_prompt)
+    st_chat_message_user.write(your_prompt)
+    
     if api_option == "Anthropic" :
-        response = send_llm_claude(data)
-        st.session_state.chat_history["history"].append({"role": "assistant", "content": response})    
-        with st.chat_message("assistant"):
-            st.write(response)
+        response = send_llm_claude(data) 
     else:    
         response = send_llm(data)
-        st.session_state.chat_history["history"].append({"role": "assistant", "content": response.content})
-        with st.chat_message("assistant"):
-            st.write(response.content)
+
+    st.session_state.chat_history["history"].append({"role": "assistant", "content": response})
+    st_chat_message_assistant.write(response)  
+          
 
     #save chat_history  
