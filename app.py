@@ -13,7 +13,7 @@ from pymongo.mongo_client import MongoClient
 import time
 import tiktoken
 from split_string import split_string_with_limit
-import ssl
+ 
 
 ANTHROPIC_API_KEY = st.secrets['ANTHROPIC_API_KEY']   
 OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
@@ -24,7 +24,7 @@ MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
 
 def mongodb_client():
     uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&w=majority&appName={MONGODB_API_APPNAME}"
-    client = MongoClient(uri,ssl=True,ssl_cert_reqs=ssl.CERT_NONE)
+    client = MongoClient(uri)
     return client
 
 def save_history_to_db(data):
