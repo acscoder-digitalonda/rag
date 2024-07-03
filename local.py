@@ -63,3 +63,8 @@ if video_id:
     tiktoken_encoding = tiktoken.get_encoding("cl100k_base")
     chunks = split_string_with_limit(formatted_transcript, 512,tiktoken_encoding)
     print(chunks[0])
+
+
+
+
+    

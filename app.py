@@ -51,7 +51,7 @@ client_claude = Anthropic(
 pc = Pinecone(PINECONE_API_KEY)
 data_index = pc.Index("chatdoc")
 
-model_name = "gpt-4-turbo-preview"
+model_name = "gpt-4o"
 def send_llm(data):
     system_prompting,messages = get_llm_prompt(data)
     client = OpenAI(
