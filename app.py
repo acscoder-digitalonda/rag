@@ -167,7 +167,12 @@ if not "all_docs" in st.session_state:
 all_docs = get_all_docs()
  
 st.session_state.all_docs = all_docs
- 
+if not "selected_docs" in st.session_state:
+    st.session_state.selected_docs = {}
+
+def add_selected_docs(idx,doc_title):
+    st.session_state.selected_docs[idx] = doc_title
+
 new_doc_modal = Modal(
     "Add New Document", 
     key="new-doc-modal",
@@ -179,7 +184,10 @@ if new_doc_modal.is_open():
         tab0,tab1, tab2 = st.tabs(["Your Documents","Upload Document", "Youtube"])
         with tab0:
             for idx,doc_title in st.session_state.all_docs.items():
-                st.checkbox(doc_title,False,idx)
+                checked = False
+                if idx in st.session_state.selected_docs.keys():
+                    checked = True
+                st.checkbox(doc_title,checked,idx,on_change=add_selected_docs,args=(idx,doc_title) )
                 
         with tab1:
             uploaded_file = st.file_uploader("Choose a document file",type=["docx","doc","txt","odt","ott","uot","rtf"])
@@ -193,11 +201,13 @@ if new_doc_modal.is_open():
                 if document_id in all_docs.keys():
                     st.write("Document already exists.")
                 else:
-                    all_docs[document_id] = title
-                    st.session_state.all_docs = all_docs 
-                    save_doc_to_vecdb(document_id,chunks)
-                    save_doc_to_db(document_id,title)
-                    st.write("Document added successfully.")
+                    with st.spinner(text="Please patient,it may take some time to process the document."):
+                        all_docs[document_id] = title
+                        st.session_state.selected_docs[document_id] = title
+                        st.session_state.all_docs = all_docs 
+                        save_doc_to_vecdb(document_id,chunks)
+                        save_doc_to_db(document_id,title)
+                        st.write("Document added successfully.")
 
         with tab2:
             vid_title = st.text_input("Youtube title:")
@@ -263,7 +273,7 @@ If you don't know the answer, just say that you don't know.'''
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
 
 if your_prompt:
-    #filter = get_filter_id([doc for doc in doc_options])
+    filter = get_filter_id([doc for doc in st.session_state.selected_docs.keys() ])
 
     st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
     order = len(st.session_state.chat_history["history"])
@@ -279,7 +289,7 @@ if your_prompt:
 
     save_prompt = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":your_prompt_vec,"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"role":"user","text":your_prompt}}
 
-    data = get_from_index(your_prompt_vec)
+    data = get_from_index(your_prompt_vec,filter=filter)
     data = cohere_rerank(your_prompt, data)
     
     if api_option == "Anthropic" :
