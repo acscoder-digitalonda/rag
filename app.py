@@ -185,8 +185,9 @@ if new_doc_modal.is_open():
     with new_doc_modal.container():
         tab0,tab1, tab2 = st.tabs(["Your Documents","Gooogle Docs", "Youtube"])
         with tab0:
-            for doc_title in all_docs.values():
-                st.text(doc_title)
+            for idx,doc_title in all_docs.items():
+                st.checkbox(doc_title,False,idx)
+                
         with tab1:
             doc_url = st.text_input("Enter your Gooogle Docs url:")
             submit_button = st.button("Submit")
@@ -297,7 +298,6 @@ if your_prompt:
     save_res = {"id":str(st.session_state.chat_history["id"])+"_"+str(order),"values":get_embedding(response),"metadata":{"chat_id":st.session_state.chat_history["id"],"order":order,"role":"assistant","text":response}}
     add_to_index([save_prompt,save_res], "chat_history")
      
-          
 for item in st.session_state.chat_history["history"]:
     if item["role"] == "user" or item["role"] == "assistant":    
         st.chat_message(item["role"]).write(item["content"])
