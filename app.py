@@ -158,9 +158,7 @@ def load_history(k):
     st.session_state.chat_history = new_history
      
 def delete_doc(doc_id):
-    data_index.delete(filter={
-        "doc_id": doc_id
-    }) 
+    data_index.delete(filter=get_filter_id(doc_id))
              
 def get_embedding(text,embed_model="text-embedding-3-small" ):
     client = OpenAI(api_key=OPENAI_API_KEY)
