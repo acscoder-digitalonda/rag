@@ -157,10 +157,11 @@ def load_history(k):
     
     st.session_state.chat_history = new_history
      
-def delete_doc(doc_id):
+def delete_docs(doc_id):
     emb = get_embedding("history")
-    l1 = get_from_index_raw(emb,10000,"default",filter={"doc_id":doc_id}) 
-    l2 = get_from_index_raw(emb,10000,"list",filter={"doc_id":doc_id}) 
+    fil =get_filter_id(doc_id)
+    l1 = get_from_index_raw(emb,10000,"default",filter=fil) 
+    l2 = get_from_index_raw(emb,10000,"list",filter=fil) 
      # delete from index
     d1 = [x["id"] for x in l1]
     d2 = [x["id"] for x in l2]
@@ -202,10 +203,10 @@ if new_doc_modal.is_open():
 
            
             if st.button("Delete Selected Documents") :
-                for idx in st.session_state.selected_docs.keys():
-                    delete_doc(idx)
-                st.session_state.selected_docs = {}
-                new_doc_modal.close()
+                if len(st.session_state.selected_docs) > 0:
+                    delete_docs(st.session_state.selected_docs.keys())    
+                    st.session_state.selected_docs = {}
+                    new_doc_modal.close()
 
         with tab1:
             uploaded_file = st.file_uploader("Choose a document file",type=["docx","doc","txt","rtf","pdf"])
