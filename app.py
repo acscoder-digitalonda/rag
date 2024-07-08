@@ -157,6 +157,11 @@ def load_history(k):
     
     st.session_state.chat_history = new_history
      
+def delete_doc(doc_id):
+    data_index.delete(filter={
+        "doc_id": doc_id
+    }) 
+             
 
 def get_embedding(text,embed_model="text-embedding-3-small" ):
     client = OpenAI(api_key=OPENAI_API_KEY)
@@ -189,7 +194,14 @@ if new_doc_modal.is_open():
                 if idx in st.session_state.selected_docs.keys():
                     checked = True
                 st.checkbox(doc_title,checked,idx,on_change=add_selected_docs,args=(idx,doc_title) )
-                
+
+            if len(st.session_state.selected_docs.keys()):
+                delselbut = st.button("Delete Selected Documents") 
+                if delselbut:
+                    for idx in st.session_state.selected_docs.keys():
+                        delete_doc(idx)
+                    st.session_state.selected_docs = {}
+
         with tab1:
             uploaded_file = st.file_uploader("Choose a document file",type=["docx","doc","txt","rtf","pdf"])
             if uploaded_file is not None: 
