@@ -16,6 +16,7 @@ from split_string import split_string_with_limit
 import requests
 import json 
 import docx2txt
+import pdfplumber
 
 ANTHROPIC_API_KEY = st.secrets['ANTHROPIC_API_KEY']   
 OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
@@ -195,6 +196,10 @@ if new_doc_modal.is_open():
 
                 if uploaded_file.type == "text/plain":
                     string_data = uploaded_file.read().decode("utf-8")
+                elif uploaded_file.type == "application/pdf":
+                    pages = pdfplumber.open(uploaded_file).pages
+                    l = list(map(lambda page:page.extract_text(),pages))
+                    string_data = "\n\n".join(l)
                 else:
                     string_data =  docx2txt.process(uploaded_file)    
                 
