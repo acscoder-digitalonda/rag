@@ -15,6 +15,7 @@ import tiktoken
 from split_string import split_string_with_limit
 import requests
 import json 
+from io import StringIO
 
 ANTHROPIC_API_KEY = st.secrets['ANTHROPIC_API_KEY']   
 OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
@@ -120,6 +121,13 @@ def save_doc_to_vecdb(document_id,chunks):
     if len(data) > 0 :
         add_to_index(data)
 
+def slugify(s):
+  s = s.lower().strip()
+  s = re.sub(r'[^\w\s-]', '', s)
+  s = re.sub(r'[\s_-]+', '-', s)
+  s = re.sub(r'^-+|-+$', '', s)
+  return s
+
 def get_gdoc(url):
     creds = gdocs.gdoc_creds()
     document_id = gdocs.extract_document_id(url)
@@ -174,18 +182,13 @@ if new_doc_modal.is_open():
                 st.checkbox(doc_title,False,idx)
                 
         with tab1:
-            doc_url = st.text_input("Enter your Gooogle Docs url:")
-            submit_button = st.button("Submit")
-            
-        with tab2:
-            vid_title = st.text_input("Youtube title:")
-            vid_url = st.text_input("Enter your Youtube url, Ex: https://www.youtube.com/watch?v=xxxxxx")
-            video_id = extract_youtube_id(vid_url)
-            submit_video = st.button("Submit Video")
-
-        if submit_button:
-            with st.spinner(text="Please patient,it may take some time to process the document."):
-                document_id,title,chunks = get_gdoc(doc_url)
+            uploaded_file = st.file_uploader("Choose a document file",type=["doc,docx,txt,odt,ott,uot,rtf"])
+            if uploaded_file is not None: 
+                stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
+                string_data = stringio.read()
+                title = uploaded_file.name
+                document_id = slugify(title)
+                chunks = split_string_with_limit(string_data, 512)
                 if document_id in all_docs.keys():
                     st.write("Document already exists.")
                 else:
@@ -194,6 +197,16 @@ if new_doc_modal.is_open():
                     save_doc_to_db(document_id,title)
                     st.session_state.all_docs = all_docs 
                     st.write("Document added successfully.")
+
+        with tab2:
+            vid_title = st.text_input("Youtube title:")
+            vid_url = st.text_input("Enter your Youtube url, Ex: https://www.youtube.com/watch?v=xxxxxx")
+            video_id = extract_youtube_id(vid_url)
+            submit_video = st.button("Submit Video")
+
+       
+                 
+                
 
         if submit_video:
             with st.spinner(text="Please patient,it may take some time to process the document."):
