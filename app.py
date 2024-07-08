@@ -184,7 +184,7 @@ if new_doc_modal.is_open():
         with tab1:
             uploaded_file = st.file_uploader("Choose a document file",type=["docx","doc","txt","odt","ott","uot","rtf"])
             if uploaded_file is not None: 
-                stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
+                stringio = StringIO(uploaded_file.getvalue().decode("ISO-8859-1"))
                 string_data = stringio.read()
                 title = uploaded_file.name
                 document_id = slugify(title)
@@ -205,9 +205,6 @@ if new_doc_modal.is_open():
             submit_video = st.button("Submit Video")
 
        
-                 
-                
-
         if submit_video:
             with st.spinner(text="Please patient,it may take some time to process the document."):
                 if not video_id or video_id in all_docs.keys():
