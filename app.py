@@ -20,22 +20,7 @@ ANTHROPIC_API_KEY = st.secrets['ANTHROPIC_API_KEY']
 OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
 PINECONE_API_KEY = st.secrets['PINECONE_API_KEY']
 COHERE_API_KEY = st.secrets['COHERE_API_KEY']
-MONGODB_API_KEY = st.secrets['MONGODB_API_KEY']
-MONGODB_API_APPNAME = st.secrets['MONGODB_API_APPNAME']
-
-DB_SERVICE_KEY = st.secrets['DB_SERVICE_KEY']
-DB_SERVICE_URL = st.secrets['DB_SERVICE_URL']
-
- 
-
-
-def mongodb_client():
-    uri = f"mongodb+srv://{MONGODB_API_KEY}@cluster0.t7fr2hb.mongodb.net/?retryWrites=true&ssl=true&w=majority&appName={MONGODB_API_APPNAME}"
-    client = MongoClient(uri)
-    return client
-
-def save_history_to_db(data):
-    pass
+  
 
 cohere_client = cohere.Client(COHERE_API_KEY)
 def cohere_rerank(query: str,docs, top_n=3):
