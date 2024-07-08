@@ -293,6 +293,7 @@ If you don't know the answer, just say that you don't know.'''
       data_index.delete(namespace="chat_history", delete_all=True) 
       data_index.delete(namespace="chat_history_list", delete_all=True)   
       st.session_state.all_chat_history = {}       
+      delete_doc("blackfriday-pre-emailrtfdocx")
  
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
 
