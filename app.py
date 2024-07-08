@@ -190,8 +190,9 @@ if new_doc_modal.is_open():
                 st.checkbox(doc_title,checked,idx,on_change=add_selected_docs,args=(idx,doc_title) )
                 
         with tab1:
-            uploaded_file = st.file_uploader("Choose a document file",type=["docx","doc","txt","odt","ott","uot","rtf"])
+            uploaded_file = st.file_uploader("Choose a document file",type=["docx","doc","txt","rtf"])
             if uploaded_file is not None: 
+
                 if uploaded_file.type == "text/plain":
                     string_data = uploaded_file.read().decode("utf-8")
                 else:
