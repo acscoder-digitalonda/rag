@@ -162,7 +162,6 @@ def delete_doc(doc_id):
         "doc_id": doc_id
     }) 
              
-
 def get_embedding(text,embed_model="text-embedding-3-small" ):
     client = OpenAI(api_key=OPENAI_API_KEY)
     text = text.replace("\n", " ")
@@ -195,8 +194,8 @@ if new_doc_modal.is_open():
                     checked = True
                 st.checkbox(doc_title,checked,idx,on_change=add_selected_docs,args=(idx,doc_title) )
 
-            delselbut = st.button("Delete Selected Documents") 
-            if delselbut:
+           
+            if st.button("Delete Selected Documents") :
                 for idx in st.session_state.selected_docs.keys():
                     delete_doc(idx)
                 st.session_state.selected_docs = {}
