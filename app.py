@@ -158,7 +158,15 @@ def load_history(k):
     st.session_state.chat_history = new_history
      
 def delete_doc(doc_id):
-    data_index.delete(filter=get_filter_id(doc_id))
+    emb = get_embedding("history")
+    l1 = get_from_index_raw(emb,10000,"default",filter={"doc_id":doc_id}) 
+    l2 = get_from_index_raw(emb,10000,"list",filter={"doc_id":doc_id}) 
+     # delete from index
+    d1 = [x["id"] for x in l1]
+    d2 = [x["id"] for x in l1]
+     
+    data_index.delete(d1, namespace="default")
+    data_index.delete(d2, namespace="list")
              
 def get_embedding(text,embed_model="text-embedding-3-small" ):
     client = OpenAI(api_key=OPENAI_API_KEY)
@@ -293,7 +301,6 @@ If you don't know the answer, just say that you don't know.'''
       data_index.delete(namespace="chat_history", delete_all=True) 
       data_index.delete(namespace="chat_history_list", delete_all=True)   
       st.session_state.all_chat_history = {}       
-      delete_doc("blackfriday-pre-emailrtfdocx")
  
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
 
