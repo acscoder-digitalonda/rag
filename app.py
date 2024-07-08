@@ -9,7 +9,7 @@ import re
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.formatters import TextFormatter
  
-from pymongo.mongo_client import MongoClient
+ 
 import time
 import tiktoken
 from split_string import split_string_with_limit
@@ -269,7 +269,12 @@ If you don't know the answer, just say that you don't know.'''
       bt = st.button(info,key=k)
       if bt:
         load_history(k)
-          
+  st.divider()
+  delete_history = st.button("Clear History")
+  if delete_history:
+      data_index.delete(namespace="chat_history", delete_all=True) 
+      data_index.delete(namespace="chat_history_list", delete_all=True)   
+      st.session_state.all_chat_history = {}       
  
 your_prompt = st.chat_input ("Enter your Prompt:" ) 
 
