@@ -176,7 +176,7 @@ new_doc_modal = Modal(
 )
 if new_doc_modal.is_open():
     with new_doc_modal.container():
-        tab0,tab1, tab2 = st.tabs(["Your Documents","Gooogle Docs", "Youtube"])
+        tab0,tab1, tab2 = st.tabs(["Your Documents","Upload Document", "Youtube"])
         with tab0:
             for idx,doc_title in all_docs.items():
                 st.checkbox(doc_title,False,idx)
