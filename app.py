@@ -194,9 +194,9 @@ if new_doc_modal.is_open():
                     st.write("Document already exists.")
                 else:
                     all_docs[document_id] = title
+                    st.session_state.all_docs = all_docs 
                     save_doc_to_vecdb(document_id,chunks)
                     save_doc_to_db(document_id,title)
-                    st.session_state.all_docs = all_docs 
                     st.write("Document added successfully.")
 
         with tab2:
