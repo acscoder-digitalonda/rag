@@ -188,7 +188,8 @@ if new_doc_modal.is_open():
                 string_data = stringio.read()
                 title = uploaded_file.name
                 document_id = slugify(title)
-                chunks = split_string_with_limit(string_data, 512)
+                tiktoken_encoding = tiktoken.get_encoding("cl100k_base")
+                chunks = split_string_with_limit(string_data, 512,tiktoken_encoding)
                 if document_id in all_docs.keys():
                     st.write("Document already exists.")
                 else:
