@@ -15,7 +15,7 @@ import tiktoken
 from split_string import split_string_with_limit
 import requests
 import json 
-from io import StringIO
+from docx2python import docx2python
 
 ANTHROPIC_API_KEY = st.secrets['ANTHROPIC_API_KEY']   
 OPENAI_API_KEY = st.secrets['OPENAI_API_KEY']
@@ -192,8 +192,11 @@ if new_doc_modal.is_open():
         with tab1:
             uploaded_file = st.file_uploader("Choose a document file",type=["docx","doc","txt","odt","ott","uot","rtf"])
             if uploaded_file is not None: 
-                stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
-                string_data = stringio.read()
+                if uploaded_file.type == "text/plain":
+                    string_data = uploaded_file.read().decode("utf-8")
+                else:
+                    string_data =  docx2python(uploaded_file).text    
+                
                 title = uploaded_file.name
                 document_id = slugify(title)
                 tiktoken_encoding = tiktoken.get_encoding("cl100k_base")
