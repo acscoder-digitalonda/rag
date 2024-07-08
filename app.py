@@ -195,7 +195,7 @@ if new_doc_modal.is_open():
                     checked = True
                 st.checkbox(doc_title,checked,idx,on_change=add_selected_docs,args=(idx,doc_title) )
 
-            if len(st.session_state.selected_docs.keys()):
+            if len(st.session_state.selected_docs):
                 delselbut = st.button("Delete Selected Documents") 
                 if delselbut:
                     for idx in st.session_state.selected_docs.keys():
