@@ -182,7 +182,7 @@ if new_doc_modal.is_open():
                 st.checkbox(doc_title,False,idx)
                 
         with tab1:
-            uploaded_file = st.file_uploader("Choose a document file",type=["doc,docx,txt,odt,ott,uot,rtf"])
+            uploaded_file = st.file_uploader("Choose a document file",type=["docx","doc","txt","odt","ott","uot","rtf"])
             if uploaded_file is not None: 
                 stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
                 string_data = stringio.read()
