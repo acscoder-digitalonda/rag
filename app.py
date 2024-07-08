@@ -163,7 +163,7 @@ def delete_doc(doc_id):
     l2 = get_from_index_raw(emb,10000,"list",filter={"doc_id":doc_id}) 
      # delete from index
     d1 = [x["id"] for x in l1]
-    d2 = [x["id"] for x in l1]
+    d2 = [x["id"] for x in l2]
      
     data_index.delete(d1, namespace="default")
     data_index.delete(d2, namespace="list")
