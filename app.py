@@ -175,10 +175,10 @@ def get_embedding(text,embed_model="text-embedding-3-small" ):
     return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
  
 if not "all_docs" in st.session_state:
-    st.session_state.all_docs = get_all_docs() 
+    st.session_state.all_docs = {}
 
-all_docs = st.session_state.all_docs
-
+all_docs = get_all_docs() 
+st.session_state.all_docs = all_docs
 
 def retrive_selected_docs():
     sd = get_from_index_raw(get_embedding("selected_doc"),top_k=1,nsp="selected_doc")
