@@ -75,6 +75,13 @@ def get_llm_prompt(data):
     our_sms = our_sms[-10:]
     return system_prompting,our_sms
 
+def get_embedding(text,embed_model="text-embedding-3-small" ):
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    text = text.replace("\n", " ")
+    return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
+
+default_vec_embedding = get_embedding("default")
+
 def add_to_index(data,nsp="default"):
     data_index.upsert(vectors=data,namespace=nsp)
 
@@ -97,11 +104,11 @@ def get_filter_id(doc_ids):
  
 
 def get_all_docs():
-    docs = get_from_index(get_embedding("document"),1000,"list")
+    docs = get_from_index(default_vec_embedding,1000,"list")
     return docs
 
 def get_all_history_list():
-    docs = get_from_index(get_embedding("history"),1000,"chat_history_list")
+    docs = get_from_index(default_vec_embedding,1000,"chat_history_list")
     return docs
     
 def save_doc_to_db(document_id,title):
@@ -148,7 +155,7 @@ def extract_youtube_id(url):
         return None
 
 def load_history(k):
-    res_matches = get_from_index_raw(get_embedding("history"),1000,"chat_history",filter={"chat_id":k})
+    res_matches = get_from_index_raw(default_vec_embedding,1000,"chat_history",filter={"chat_id":k})
     new_history = {"id": k, "history": []}
     for x in res_matches:
         idx = int(x["metadata"]["order"]) - 1
@@ -158,10 +165,9 @@ def load_history(k):
     st.session_state.chat_history = new_history
      
 def delete_docs(doc_id):
-    emb = get_embedding("history")
     fil =get_filter_id(doc_id)
-    l1 = get_from_index_raw(emb,10000,"default",filter=fil) 
-    l2 = get_from_index_raw(emb,10000,"list",filter=fil) 
+    l1 = get_from_index_raw(default_vec_embedding,10000,"default",filter=fil) 
+    l2 = get_from_index_raw(default_vec_embedding,10000,"list",filter=fil) 
      # delete from index
     d1 = [x["id"] for x in l1]
     d2 = [x["id"] for x in l2]
@@ -169,11 +175,10 @@ def delete_docs(doc_id):
     data_index.delete(d1, namespace="default")
     data_index.delete(d2, namespace="list")
              
-def get_embedding(text,embed_model="text-embedding-3-small" ):
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    text = text.replace("\n", " ")
-    return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
+
  
+
+
 if not "all_docs" in st.session_state:
     st.session_state.all_docs = {}
 
@@ -181,7 +186,7 @@ all_docs = get_all_docs()
 st.session_state.all_docs = all_docs
 
 def retrive_selected_docs():
-    sd = get_from_index_raw(get_embedding("selected_doc"),top_k=1,nsp="selected_doc")
+    sd = get_from_index_raw(default_vec_embedding,top_k=1,nsp="selected_doc")
     
     if len(sd) > 0:
         sd = sd[0]
@@ -192,7 +197,7 @@ def retrive_selected_docs():
 
 def save_selected_docs():
     metadata = {"keys": ",".join(st.session_state.selected_docs.keys()),"values": ",".join(st.session_state.selected_docs.values())}
-    data = [{ "id": "selected_doc", "values":get_embedding("selected_doc"), "metadata": metadata}]
+    data = [{ "id": "selected_doc", "values":default_vec_embedding, "metadata": metadata}]
     add_to_index(data, "selected_doc") 
 
 def add_selected_docs(idx,doc_title):
