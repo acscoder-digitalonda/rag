@@ -175,16 +175,34 @@ def get_embedding(text,embed_model="text-embedding-3-small" ):
     return client.embeddings.create(input = [text], model=embed_model).data[0].embedding
  
 if not "all_docs" in st.session_state:
+    st.session_state.all_docs = get_all_docs() 
+
+all_docs = st.session_state.all_docs
+
+
+def retrive_selected_docs():
+    sd = get_from_index_raw(get_embedding("selected_doc"),top_k=1,nsp="selected_doc")
     st.session_state.all_docs = {}
-all_docs = get_all_docs()
- 
-st.session_state.all_docs = all_docs
-if not "selected_docs" in st.session_state:
-    st.session_state.selected_docs = {}
+    if len(sd) > 0:
+        sd = sd[0]
+        keys = sd["metadata"]["keys"].split(",")
+        values = sd["metadata"]["values"].split(",")
+        for idx,key in enumerate(keys):
+            st.session_state.selected_docs[key] = values[idx]
+
+def save_selected_docs():
+    metadata = {"keys": ",".join(st.session_state.selected_docs.keys()),"values": ",".join(st.session_state.selected_docs.values())}
+    data = [{ "id": "selected_doc", "values":get_embedding("selected_doc"), "metadata": metadata}]
+    add_to_index(data, "selected_doc") 
 
 def add_selected_docs(idx,doc_title):
     st.session_state.selected_docs[idx] = doc_title
+    save_selected_docs()
 
+if not "selected_docs" in st.session_state:
+    st.session_state.selected_docs = retrive_selected_docs()
+
+    
 new_doc_modal = Modal(
     "Add New Document", 
     key="new-doc-modal",
@@ -206,6 +224,7 @@ if new_doc_modal.is_open():
                 if len(st.session_state.selected_docs) > 0:
                     delete_docs(st.session_state.selected_docs.keys())    
                     st.session_state.selected_docs = {}
+                    save_selected_docs()
                     new_doc_modal.close()
 
         with tab1:
@@ -311,7 +330,6 @@ if your_prompt:
     st.session_state.chat_history["history"].append({"role": "user", "content": your_prompt})
     order = len(st.session_state.chat_history["history"])
     
-
     your_prompt_vec = get_embedding(your_prompt)
     
     if order == 1:
