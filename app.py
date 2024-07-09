@@ -201,7 +201,7 @@ def add_selected_docs(idx,doc_title):
 
 if not "selected_docs" in st.session_state:
     st.session_state.selected_docs = {}
-    retrive_selected_docs()
+retrive_selected_docs()
 
     
 new_doc_modal = Modal(
