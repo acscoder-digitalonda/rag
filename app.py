@@ -182,7 +182,7 @@ st.session_state.all_docs = all_docs
 
 def retrive_selected_docs():
     sd = get_from_index_raw(get_embedding("selected_doc"),top_k=1,nsp="selected_doc")
-    st.session_state.selected_docs = {}
+    
     if len(sd) > 0:
         sd = sd[0]
         keys = sd["metadata"]["keys"].split(",")
@@ -200,7 +200,8 @@ def add_selected_docs(idx,doc_title):
     save_selected_docs()
 
 if not "selected_docs" in st.session_state:
-    st.session_state.selected_docs = retrive_selected_docs()
+    st.session_state.selected_docs = {}
+    retrive_selected_docs()
 
     
 new_doc_modal = Modal(
