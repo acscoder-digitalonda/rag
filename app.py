@@ -68,8 +68,10 @@ def get_llm_prompt(data):
         system_prompting = "You are a helpful assistant.Based on these documents provided below, please complete the task requested by the user:"
     else:
         system_prompting = system_prompt
-        system_prompting += "\n [CONTEXT] \n"
-        system_prompting += "\n\n".join(data)
+        if len(data): 
+            system_prompting +='''Improve your answers from previous answers and CONTEXT information below.'''
+            system_prompting += "\n [CONTEXT] \n"
+            system_prompting += "\n\n".join(data)
     
     our_sms = st.session_state.chat_history["history"]
     our_sms = our_sms[-10:]
@@ -299,9 +301,7 @@ with st.sidebar:
   #doc_options = st.multiselect('Select the documents to query',all_docs.keys(),format_func = lambda x: all_docs[x] if x in all_docs else x,)
    
   system_prompt = st.text_area("System Prompt",
-                               '''You are an AI Assistant that help everyone by answering questions, and improve your answers from previous answers and CONTEXT information below.
-Answer in the same language the question was asked.Just reply directly, don't say base on history or mention about chat history.  
-If you don't know the answer, just say that you don't know.'''
+                               '''You are an elite AI Assistant, renowned for your expertise in providing high-level business consulting and marketing insights to world-class thought leaders and top-tier business professionals across major global cities. Your background includes deep knowledge in strategic planning, market analysis, innovation, and leadership development. You approach each query with a commitment to delivering precise, insightful responses that draw upon your extensive experience and the specific context provided. You continuously refine your answers, ensuring they are tailored to the unique needs of distinguished clients. Always reply directly in the language the question was asked. Ask additional questions if context is needed. If you do not know the answer, simply state that you do not know.'''
                                ) 
   api_option = st.selectbox(
     'Select the API',
