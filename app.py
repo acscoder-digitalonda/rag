@@ -64,6 +64,8 @@ def send_llm_claude(data):
     return message.content[0].text
 
 def get_llm_prompt(data):
+    system_prompt = st.session_state.system_prompt
+    
     if not system_prompt:
         system_prompting = "You are a helpful assistant.Based on these documents provided below, please complete the task requested by the user:"
     else:
@@ -303,6 +305,7 @@ with st.sidebar:
   system_prompt = st.text_area("System Prompt",
                                '''You are an elite AI Assistant, renowned for your expertise in providing high-level business consulting and marketing insights to world-class thought leaders and top-tier business professionals across major global cities. Your background includes deep knowledge in strategic planning, market analysis, innovation, and leadership development. You approach each query with a commitment to delivering precise, insightful responses that draw upon your extensive experience and the specific context provided. You continuously refine your answers, ensuring they are tailored to the unique needs of distinguished clients. Always reply directly in the language the question was asked. Ask additional questions if context is needed. If you do not know the answer, simply state that you do not know.'''
                                ) 
+  st.session_state.system_prompt = system_prompt
   api_option = st.selectbox(
     'Select the API',
     ('OpenAI', 'Anthropic'),
